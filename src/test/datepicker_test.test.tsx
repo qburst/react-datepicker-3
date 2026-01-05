@@ -1150,7 +1150,7 @@ describe("DatePicker", () => {
       <DatePicker
         inline
         selected={selected}
-        onChange={(d: Date | null) => {
+        onChange={(d) => {
           date = d;
         }}
       />,
@@ -1172,7 +1172,7 @@ describe("DatePicker", () => {
     const { container } = render(
       <DatePicker
         selected={selected}
-        onChange={(d: Date | null) => {
+        onChange={(d) => {
           date = d;
         }}
       />,
@@ -4610,7 +4610,7 @@ describe("DatePicker", () => {
       const { container } = render(
         <DatePicker
           selected={selected}
-          onChange={(d: Date | null) => {
+          onChange={(d) => {
             date = d;
           }}
           showTimeSelect
@@ -4641,7 +4641,7 @@ describe("DatePicker", () => {
     const { container: datepicker } = render(
       <DatePicker
         selected={selected}
-        onChange={(d: Date | null) => {
+        onChange={(d) => {
           date = d;
         }}
         showTimeSelect
@@ -4667,7 +4667,7 @@ describe("DatePicker", () => {
     const { container: datepicker } = render(
       <DatePicker
         selected={selected}
-        onChange={(d: Date | null) => {
+        onChange={(d) => {
           date = d;
         }}
         showTimeSelectOnly
@@ -4691,7 +4691,7 @@ describe("DatePicker", () => {
     const { container } = render(
       <DatePicker
         selected={selected}
-        onChange={(d: Date | null) => (date = d)}
+        onChange={(d) => (date = d)}
         dateFormat="MM/yyyy"
         minDate={newDate("2022-12-31")}
         showMonthYearPicker
@@ -4720,7 +4720,7 @@ describe("DatePicker", () => {
     const { container } = render(
       <DatePicker
         selected={selected}
-        onChange={(d: Date | null) => (date = d)}
+        onChange={(d) => (date = d)}
         dateFormat="yyyy"
         minDate={newDate("2022-12-31")}
         showYearPicker
