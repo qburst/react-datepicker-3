@@ -688,6 +688,173 @@ describe("DatePicker with timeZone prop", () => {
     expect(changedStartDate).toBeInstanceOf(Date);
     expect(changedEndDate).toBeNull();
   });
+
+  // Test for issue #6193: Date selection with extreme timezone difference
+  it("should correctly select date when timezone differs significantly from browser timezone (issue #6193)", () => {
+    // Simulate: browser in UTC, timezone prop set to Pacific/Kiritimati (UTC+14)
+    // When user clicks Dec 26 in the calendar, onChange should receive Dec 26 in Kiritimati
+    // which is Dec 25 10:00 UTC - and the input should still display Dec 26
+
+    // Start with a date that represents Dec 26 00:00 in Kiritimati (= Dec 25 10:00 UTC)
+    const initialUtcDate = new Date("2025-12-25T10:00:00Z");
+    let selectedDate: Date | null = initialUtcDate;
+
+    const { container, rerender } = render(
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => {
+          selectedDate = date;
+        }}
+        timeZone="Pacific/Kiritimati"
+        dateFormat="yyyy-MM-dd"
+      />,
+    );
+
+    // The input should display Dec 26 (the date in Kiritimati timezone)
+    const input = container.querySelector("input");
+    expect(input?.value).toBe("2025-12-26");
+
+    // Open the calendar
+    if (input) {
+      fireEvent.focus(input);
+    }
+
+    // Find and click Dec 26 in the calendar
+    const days = container.querySelectorAll(".react-datepicker__day");
+    const dayToClick = Array.from(days).find(
+      (day) =>
+        !day.classList.contains("react-datepicker__day--outside-month") &&
+        day.textContent === "26",
+    );
+    expect(dayToClick).toBeTruthy();
+
+    // The day 26 should be marked as selected before clicking
+    expect(
+      dayToClick?.classList.contains("react-datepicker__day--selected"),
+    ).toBe(true);
+
+    if (dayToClick) {
+      fireEvent.click(dayToClick);
+    }
+
+    // After clicking, re-render with the new selected date
+    rerender(
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => {
+          selectedDate = date;
+        }}
+        timeZone="Pacific/Kiritimati"
+        dateFormat="yyyy-MM-dd"
+      />,
+    );
+
+    // The input should still display Dec 26 (same date user clicked)
+    expect(input?.value).toBe("2025-12-26");
+
+    // The onChange should have been called with a UTC date that represents Dec 26 in Kiritimati
+    // Dec 26 00:00 Kiritimati = Dec 25 10:00 UTC
+    expect(selectedDate).not.toBeNull();
+    expect(selectedDate?.getUTCFullYear()).toBe(2025);
+    expect(selectedDate?.getUTCMonth()).toBe(11); // December
+    expect(selectedDate?.getUTCDate()).toBe(25);
+    expect(selectedDate?.getUTCHours()).toBe(10);
+  });
+
+  // Test that clicking a different date works correctly with timezone
+  it("should correctly change date when clicking different day with timezone (issue #6193)", () => {
+    // Start with Dec 26 00:00 Kiritimati (= Dec 25 10:00 UTC)
+    const initialUtcDate = new Date("2025-12-25T10:00:00Z");
+    let selectedDate: Date | null = initialUtcDate;
+
+    const { container, rerender } = render(
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => {
+          selectedDate = date;
+        }}
+        timeZone="Pacific/Kiritimati"
+        dateFormat="yyyy-MM-dd"
+      />,
+    );
+
+    const input = container.querySelector("input");
+    expect(input?.value).toBe("2025-12-26");
+
+    // Open the calendar
+    if (input) {
+      fireEvent.focus(input);
+    }
+
+    // Click Dec 27 instead
+    const days = container.querySelectorAll(".react-datepicker__day");
+    const dayToClick = Array.from(days).find(
+      (day) =>
+        !day.classList.contains("react-datepicker__day--outside-month") &&
+        day.textContent === "27",
+    );
+    expect(dayToClick).toBeTruthy();
+
+    if (dayToClick) {
+      fireEvent.click(dayToClick);
+    }
+
+    // Re-render with new selected date
+    rerender(
+      <DatePicker
+        selected={selectedDate}
+        onChange={(date) => {
+          selectedDate = date;
+        }}
+        timeZone="Pacific/Kiritimati"
+        dateFormat="yyyy-MM-dd"
+      />,
+    );
+
+    // The input should now display Dec 27
+    expect(input?.value).toBe("2025-12-27");
+
+    // The UTC date should represent Dec 27 00:00 Kiritimati = Dec 26 10:00 UTC
+    expect(selectedDate?.getUTCDate()).toBe(26);
+  });
+
+  // Test for selectsMultiple with timezone
+  it("should correctly display and select multiple dates with timezone", () => {
+    // Dec 26 00:00 Kiritimati = Dec 25 10:00 UTC
+    // Dec 27 00:00 Kiritimati = Dec 26 10:00 UTC
+    const initialDates = [
+      new Date("2025-12-25T10:00:00Z"),
+      new Date("2025-12-26T10:00:00Z"),
+    ];
+    let selectedDates: Date[] = initialDates;
+
+    const { container } = render(
+      <DatePicker
+        selectedDates={selectedDates}
+        selectsMultiple
+        onChange={(dates) => {
+          selectedDates = dates as Date[];
+        }}
+        timeZone="Pacific/Kiritimati"
+        dateFormat="yyyy-MM-dd"
+        inline
+        // Set openToDate to ensure calendar shows December 2025
+        openToDate={new Date("2025-12-25T10:00:00Z")}
+      />,
+    );
+
+    // Both Dec 26 and Dec 27 should be marked as selected in the calendar
+    // Filter to only days in current month (not outside-month days)
+    const selectedDays = container.querySelectorAll(
+      ".react-datepicker__day--selected:not(.react-datepicker__day--outside-month)",
+    );
+    expect(selectedDays.length).toBe(2);
+
+    // Check that the correct days are highlighted
+    const dayTexts = Array.from(selectedDays).map((d) => d.textContent);
+    expect(dayTexts).toContain("26");
+    expect(dayTexts).toContain("27");
+  });
 });
 
 describe("Timezone fallback behavior (when date-fns-tz is not installed)", () => {
