@@ -258,7 +258,7 @@ export type DatePickerProps = OmitUnion<
         ) => void;
       }
     | {
-        selectsRange?: true;
+        selectsRange: true;
         selectsMultiple?: false | undefined;
         formatMultipleDates?: never;
         onChange?: (
@@ -270,7 +270,7 @@ export type DatePickerProps = OmitUnion<
       }
     | {
         selectsRange?: false | undefined;
-        selectsMultiple?: true;
+        selectsMultiple: true;
         formatMultipleDates?: (
           dates: Date[],
           formatDate: (date: Date) => string,
