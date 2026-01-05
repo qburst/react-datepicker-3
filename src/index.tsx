@@ -534,6 +534,7 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
       selectsRange,
       formatMultipleDates,
       value,
+      timeZone,
     } = this.props;
     const dateFormat =
       this.props.dateFormat ?? DatePicker.defaultProps.dateFormat;
@@ -549,21 +550,24 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
         dateFormat,
         locale,
         rangeSeparator,
+        timeZone,
       });
     } else if (selectsMultiple) {
       if (formatMultipleDates) {
         const formatDateFn = (date: Date) =>
-          safeDateFormat(date, { dateFormat, locale });
+          safeDateFormat(date, { dateFormat, locale, timeZone });
         return formatMultipleDates(selectedDates ?? [], formatDateFn);
       }
       return safeMultipleDatesFormat(selectedDates ?? [], {
         dateFormat,
         locale,
+        timeZone,
       });
     }
     return safeDateFormat(selected, {
       dateFormat,
       locale,
+      timeZone,
     });
   };
 
@@ -1730,6 +1734,23 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
     if (!this.props.inline && !this.isCalendarOpen()) {
       return null;
     }
+
+    const { timeZone, selected, startDate, endDate, selectedDates } =
+      this.props;
+
+    // Convert dates to zoned time for calendar display when timeZone is specified
+    // This ensures the calendar highlights the correct day in the target timezone
+    const zonedSelected =
+      selected && timeZone ? toZonedTime(selected, timeZone) : selected;
+    const zonedStartDate =
+      startDate && timeZone ? toZonedTime(startDate, timeZone) : startDate;
+    const zonedEndDate =
+      endDate && timeZone ? toZonedTime(endDate, timeZone) : endDate;
+    const zonedSelectedDates =
+      selectedDates && timeZone
+        ? selectedDates.map((date) => toZonedTime(date, timeZone))
+        : selectedDates;
+
     return (
       <Calendar
         showMonthYearDropdown={undefined}
@@ -1738,6 +1759,11 @@ export class DatePicker extends Component<DatePickerProps, DatePickerState> {
         }}
         {...this.props}
         {...this.state}
+        // Override date props with zoned time versions for correct display
+        selected={zonedSelected}
+        startDate={zonedStartDate}
+        endDate={zonedEndDate}
+        selectedDates={zonedSelectedDates}
         setOpen={this.setOpen}
         dateFormat={
           this.props.dateFormatCalendar ??

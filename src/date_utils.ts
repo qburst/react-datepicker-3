@@ -439,19 +439,38 @@ export function formatDate(
  * Safely formats a date.
  *
  * @param date - The date.
- * @param options - An object containing the dateFormat and locale.
+ * @param options - An object containing the dateFormat, locale, and optional timeZone.
  * @returns - The formatted date or an empty string.
  */
 export function safeDateFormat(
   date: Date | null | undefined,
-  { dateFormat, locale }: { dateFormat: string | string[]; locale?: Locale },
+  {
+    dateFormat,
+    locale,
+    timeZone,
+  }: { dateFormat: string | string[]; locale?: Locale; timeZone?: TimeZone },
 ): string {
   const formatStr = (
     Array.isArray(dateFormat) && dateFormat.length > 0
       ? dateFormat[0]
       : dateFormat
   ) as string; // Cast to string because it's impossible to get `string | string[] | undefined` here and typescript doesn't know that
-  return (date && formatDate(date, formatStr, locale)) || "";
+
+  if (!date) {
+    return "";
+  }
+
+  // Use timezone-aware formatting if timeZone is specified
+  if (timeZone) {
+    // Resolve locale string to locale object for formatInTimeZone
+    // Cast to DateFnsLocale since LocaleObj is a compatible subset
+    const localeObj = (
+      locale ? getLocaleObject(locale) : getLocaleObject(getDefaultLocale())
+    ) as DateFnsLocale | undefined;
+    return formatInTimeZone(date, formatStr, timeZone, localeObj);
+  }
+
+  return formatDate(date, formatStr, locale) || "";
 }
 
 /**
@@ -474,6 +493,7 @@ export function safeDateRangeFormat(
     dateFormat: string | string[];
     locale?: Locale;
     rangeSeparator?: string;
+    timeZone?: TimeZone;
   },
 ): string {
   if (!startDate && !endDate) {
@@ -496,7 +516,11 @@ export function safeDateRangeFormat(
  */
 export function safeMultipleDatesFormat(
   dates: Date[],
-  props: { dateFormat: string | string[]; locale?: Locale },
+  props: {
+    dateFormat: string | string[];
+    locale?: Locale;
+    timeZone?: TimeZone;
+  },
 ): string {
   if (!dates?.length) {
     return "";
