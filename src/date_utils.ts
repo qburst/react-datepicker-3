@@ -583,14 +583,14 @@ export function getWeek(date: Date): number {
 }
 
 /**
- * Gets the day of the week code for a given day.
+ * Gets the day-of-the-month code for a given date.
+ * Returns a zero-padded 3-digit string from "001" to "031".
  *
  * @param day - The day.
- * @param locale - The locale.
- * @returns - The day of the week code.
+ * @returns - A string representing the day of the month (e.g. "001", "002", "003", etc).
  */
-export function getDayOfWeekCode(day: Date, locale?: Locale): string {
-  return formatDate(day, "ddd", locale);
+export function getDayOfMonthCode(day: Date): string {
+  return formatDate(day, "ddd");
 }
 
 // *** Start of ***
