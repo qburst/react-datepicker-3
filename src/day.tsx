@@ -13,7 +13,7 @@ import {
   isEqual,
   isBefore,
   isAfter,
-  getDayOfWeekCode,
+  getDayOfMonthCode,
   getStartOfWeek,
   formatDate,
   type DateFilterOptionsWithDisabled,
@@ -445,7 +445,7 @@ export default class Day extends Component<DayProps> {
     return clsx(
       "react-datepicker__day",
       dayClassName,
-      "react-datepicker__day--" + getDayOfWeekCode(this.props.day),
+      "react-datepicker__day--" + getDayOfMonthCode(this.props.day),
       {
         "react-datepicker__day--disabled": this.isDisabled(),
         "react-datepicker__day--excluded": this.isExcluded(),
