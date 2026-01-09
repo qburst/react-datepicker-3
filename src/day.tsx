@@ -13,8 +13,9 @@ import {
   isEqual,
   isBefore,
   isAfter,
-  getDayOfWeekCode,
+  getDayOfMonthCode,
   getStartOfWeek,
+  getWeekdayShortInLocale,
   formatDate,
   type DateFilterOptionsWithDisabled,
   type DateNumberType,
@@ -442,10 +443,13 @@ export default class Day extends Component<DayProps> {
     const dayClassName = this.props.dayClassName
       ? this.props.dayClassName(date)
       : undefined;
+    const baseDayClassName = "react-datepicker__day";
+
     return clsx(
-      "react-datepicker__day",
+      baseDayClassName,
       dayClassName,
-      "react-datepicker__day--" + getDayOfWeekCode(this.props.day),
+      `${baseDayClassName}--${getDayOfMonthCode(this.props.day)}`,
+      `${baseDayClassName}--${getWeekdayShortInLocale(this.props.day).toLowerCase()}`,
       {
         "react-datepicker__day--disabled": this.isDisabled(),
         "react-datepicker__day--excluded": this.isExcluded(),

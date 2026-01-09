@@ -3,7 +3,8 @@ import { es } from "date-fns/locale";
 import React from "react";
 
 import {
-  getDayOfWeekCode,
+  getDayOfMonthCode,
+  getWeekdayShortInLocale,
   newDate,
   getDate,
   addDays,
@@ -38,10 +39,26 @@ describe("Day", () => {
       expect(container.textContent).toBe(getDate(day) + "");
     });
 
-    it("should apply the day of week class", () => {
+    it("should apply the day of week class in default locale (en) ignoring locale provided", () => {
       let day = newDate();
       for (let i = 0; i < 7; i++) {
-        const className = "react-datepicker__day--" + getDayOfWeekCode(day);
+        const container = renderDay(day, { locale: "pt-BR" });
+        const weekName = getWeekdayShortInLocale(day).toLowerCase();
+        const expectedWeekNameClassName = `react-datepicker__day--${weekName}`;
+
+        expect(
+          container
+            .querySelector(".react-datepicker__day")
+            ?.classList.contains(expectedWeekNameClassName),
+        ).toBe(true);
+        day = addDays(day, 1);
+      }
+    });
+
+    it("should apply the day of month class", () => {
+      let day = newDate();
+      for (let i = 0; i < 7; i++) {
+        const className = `react-datepicker__day--${getDayOfMonthCode(day)}`;
         const container = renderDay(day);
         expect(
           container
