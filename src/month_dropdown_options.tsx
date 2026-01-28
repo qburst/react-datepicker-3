@@ -50,6 +50,7 @@ export default class MonthDropdownOptions extends Component<MonthDropdownOptions
             }
           }}
           role="button"
+          aria-label={`Select Month ${month}`}
           tabIndex={0}
           className={
             this.isSelectedMonth(i)
