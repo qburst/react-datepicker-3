@@ -34,8 +34,25 @@ describe("YearDropdown", () => {
   });
 
   describe("scroll mode", () => {
+    const selectedYear = 2015;
+
     beforeEach(function () {
-      yearDropdown = getYearDropdown();
+      yearDropdown = getYearDropdown({
+        year: selectedYear,
+      });
+    });
+
+    it("read view has correct ARIA attributes and toggles aria-expanded", () => {
+      const yearReadView = safeQuerySelector<HTMLButtonElement>(
+        yearDropdown,
+        ".react-datepicker__year-read-view",
+      );
+      expect(yearReadView.getAttribute("aria-haspopup")).toBe("listbox");
+      expect(yearReadView.getAttribute("aria-label")).toBe("Select Year");
+      expect(yearReadView.getAttribute("aria-expanded")).toBe("false");
+
+      fireEvent.click(yearReadView);
+      expect(yearReadView.getAttribute("aria-expanded")).toBe("true");
     });
 
     it("shows the selected year in the initial view", () => {
@@ -138,15 +155,109 @@ describe("YearDropdown", () => {
       fireEvent.keyDown(document.activeElement!, { key: "Enter" });
       expect(lastOnChangeValue).toEqual(2016);
     });
+
+    it("options expose correct ARIA attributes", () => {
+      const yearReadView = safeQuerySelector(
+        yearDropdown,
+        ".react-datepicker__year-read-view",
+      );
+      fireEvent.click(yearReadView);
+
+      const yearOptions = safeQuerySelectorAll<HTMLDivElement>(
+        yearDropdown,
+        ".react-datepicker__year-option",
+        7,
+      );
+
+      // Find the selected year option by text
+      const selected = yearOptions.find((el) =>
+        el.textContent?.includes(selectedYear.toString()),
+      )!;
+      expect(selected.getAttribute("aria-selected")).toBe("true");
+      expect(selected.getAttribute("aria-label")).toBe(
+        `Select Year ${selectedYear}`,
+      );
+
+      // Find a non-selected year option and ensure aria-selected is not present
+      const nonSelected =
+        yearOptions.find(
+          (el) => el.textContent?.trim() === (selectedYear - 1).toString(),
+        ) ??
+        yearOptions.find(
+          (el) => el.textContent?.trim() === (selectedYear + 1).toString(),
+        );
+      expect(nonSelected).toBeTruthy();
+      expect(nonSelected!.getAttribute("aria-selected")).toBeNull();
+      const nonSelectedYear = nonSelected!.textContent!.trim();
+      expect(nonSelected!.getAttribute("aria-label")).toBe(
+        `Select Year ${nonSelectedYear}`,
+      );
+    });
+
+    it("pressing Escape closes the dropdown (onCancel)", () => {
+      const yearReadView = safeQuerySelector(
+        yearDropdown,
+        ".react-datepicker__year-read-view",
+      );
+      fireEvent.click(yearReadView);
+
+      const yearOptions = safeQuerySelectorAll<HTMLDivElement>(
+        yearDropdown,
+        ".react-datepicker__year-option",
+        7,
+      );
+      // Focus the selected option and press Escape
+      const selected = yearOptions.find((el) =>
+        el.textContent?.includes("2015"),
+      )!;
+      selected.focus();
+      fireEvent.keyDown(selected, { key: "Escape" });
+
+      const optionsView = yearDropdown?.querySelectorAll(
+        "react-datepicker__year-dropdown",
+      );
+      expect(optionsView).toHaveLength(0);
+    });
+
+    it("clicking 'Show later years' shifts the years forward by one", () => {
+      const yearReadView = safeQuerySelector(
+        yearDropdown,
+        ".react-datepicker__year-read-view",
+      );
+      fireEvent.click(yearReadView);
+
+      // The first option is the 'Show later years' control when no maxDate is provided
+      const yearOptionsBefore = safeQuerySelectorAll<HTMLDivElement>(
+        yearDropdown,
+        ".react-datepicker__year-option",
+        7,
+      );
+      const firstYearBefore = Number(
+        yearOptionsBefore[1]!.textContent?.trim(), // index 0 is the navigation control
+      );
+
+      // Click the navigation control to shift years
+      fireEvent.click(yearOptionsBefore[0]!);
+
+      const yearOptionsAfter = safeQuerySelectorAll<HTMLDivElement>(
+        yearDropdown,
+        ".react-datepicker__year-option",
+        7,
+      );
+      const firstYearAfter = Number(yearOptionsAfter[1]!.textContent?.trim());
+      expect(firstYearAfter).toBe(firstYearBefore + 1);
+    });
   });
 
   describe("select mode", () => {
+    const selectedYear = 2015;
+
     it("renders a select with default year range options", () => {
       yearDropdown = getYearDropdown({ dropdownMode: "select" });
       const select: NodeListOf<HTMLSelectElement> =
         yearDropdown.querySelectorAll(".react-datepicker__year-select");
       expect(select).toHaveLength(1);
-      expect(select[0]?.value).toBe("2015");
+      expect(select[0]?.value).toBe(selectedYear.toString());
 
       const options = select[0]?.querySelectorAll("option") ?? [];
       expect(Array.from(options).map((o) => o.textContent)).toEqual(
@@ -205,6 +316,33 @@ describe("YearDropdown", () => {
       fireEvent.change(select, { target: { value: 2014 } });
       expect(onSelectSpy).toHaveBeenCalledTimes(1);
       expect(setOpenSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("select and options expose correct ARIA attributes", () => {
+      yearDropdown = getYearDropdown({ dropdownMode: "select" });
+      const select: HTMLSelectElement =
+        yearDropdown.querySelector(".react-datepicker__year-select") ??
+        new HTMLSelectElement();
+
+      expect(select.getAttribute("aria-label")).toBe("Select Year");
+
+      const options = Array.from(
+        select.querySelectorAll("option"),
+      ) as HTMLOptionElement[];
+      const opt2015 = options.find((o) => o.value === selectedYear.toString())!;
+      const opt2014 = options.find(
+        (o) => o.value === (selectedYear - 1).toString(),
+      )!;
+
+      expect(opt2015.getAttribute("aria-selected")).toBe("true");
+      expect(opt2015.getAttribute("aria-label")).toBe(
+        `Select Year ${selectedYear}`,
+      );
+
+      expect(opt2014.getAttribute("aria-selected")).toBe("false");
+      expect(opt2014.getAttribute("aria-label")).toBe(
+        `Select Year ${selectedYear - 1}`,
+      );
     });
   });
 });

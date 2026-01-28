@@ -36,7 +36,12 @@ export default class MonthDropdown extends Component<
   renderSelectOptions = (monthNames: string[]): React.ReactElement[] =>
     monthNames.map<React.ReactElement>(
       (m: string, i: number): React.ReactElement => (
-        <option key={m} value={i}>
+        <option
+          key={m}
+          value={i}
+          aria-label={`Select Month ${m}`}
+          aria-selected={i === this.props.month ? "true" : "false"}
+        >
           {m}
         </option>
       ),
@@ -47,6 +52,7 @@ export default class MonthDropdown extends Component<
       value={this.props.month}
       className="react-datepicker__month-select"
       onChange={(e) => this.onChange(parseInt(e.target.value))}
+      aria-label="Select Month"
     >
       {this.renderSelectOptions(monthNames)}
     </select>
@@ -62,8 +68,14 @@ export default class MonthDropdown extends Component<
       style={{ visibility: visible ? "visible" : "hidden" }}
       className="react-datepicker__month-read-view"
       onClick={this.toggleDropdown}
+      aria-label="Select Month"
+      aria-expanded={this.state.dropdownVisible}
+      aria-haspopup="listbox"
     >
-      <span className="react-datepicker__month-read-view--down-arrow" />
+      <span
+        className="react-datepicker__month-read-view--down-arrow"
+        aria-hidden="true"
+      />
       <span className="react-datepicker__month-read-view--selected-month">
         {monthNames[this.props.month]}
       </span>

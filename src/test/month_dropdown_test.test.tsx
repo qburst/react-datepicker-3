@@ -44,6 +44,40 @@ describe("MonthDropdown", () => {
       monthDropdown = getMonthDropdown();
     });
 
+    it("sets proper ARIA on read view button and toggles aria-expanded", () => {
+      const monthReadView = safeQuerySelector(
+        monthDropdown,
+        ".react-datepicker__month-read-view",
+      );
+      expect(monthReadView.getAttribute("aria-label")).toBe("Select Month");
+      expect(monthReadView.getAttribute("aria-haspopup")).toBe("listbox");
+      expect(monthReadView.getAttribute("aria-expanded")).toBe("false");
+
+      fireEvent.click(monthReadView);
+
+      const monthReadViewAfterOpen = safeQuerySelector(
+        monthDropdown,
+        ".react-datepicker__month-read-view",
+      );
+      expect(monthReadViewAfterOpen.getAttribute("aria-expanded")).toBe("true");
+    });
+
+    it("applies aria-label to each month option in scroll dropdown", () => {
+      const monthReadView = safeQuerySelector(
+        monthDropdown,
+        ".react-datepicker__month-read-view",
+      );
+      fireEvent.click(monthReadView);
+
+      const firstOption = safeQuerySelector(
+        monthDropdown,
+        ".react-datepicker__month-option",
+      );
+      expect(firstOption.getAttribute("aria-label")).toBe(
+        "Select Month January",
+      );
+    });
+
     it("shows the selected month in the initial view", () => {
       expect(monthDropdown?.textContent).toContain("December");
     });
@@ -307,6 +341,14 @@ describe("MonthDropdown", () => {
       );
     });
 
+    it("adds aria-label to select element", () => {
+      monthDropdown = getMonthDropdown({ dropdownMode: "select" });
+      const select = monthDropdown.querySelector<HTMLSelectElement>(
+        ".react-datepicker__month-select",
+      );
+      expect(select?.getAttribute("aria-label")).toBe("Select Month");
+    });
+
     it("renders month options with default locale", () => {
       monthDropdown = getMonthDropdown({ dropdownMode: "select" });
       const options = monthDropdown.querySelectorAll("option");
@@ -324,6 +366,24 @@ describe("MonthDropdown", () => {
         "November",
         "December",
       ]);
+    });
+    // Accessibility of options
+    it("adds aria-label and aria-selected to options in select mode", () => {
+      monthDropdown = getMonthDropdown({ dropdownMode: "select", month: 11 });
+      const select = monthDropdown.querySelector<HTMLSelectElement>(
+        ".react-datepicker__month-select",
+      );
+      const options = Array.from(
+        select?.querySelectorAll("option") ?? [],
+      ) as HTMLOptionElement[];
+      expect(options[0]?.getAttribute("aria-label")).toBe(
+        "Select Month January",
+      );
+      expect(options[11]?.getAttribute("aria-label")).toBe(
+        "Select Month December",
+      );
+      expect(options[11]?.getAttribute("aria-selected")).toBe("true");
+      expect(options[0]?.getAttribute("aria-selected")).toBe("false");
     });
     // Short Month Names
     it("renders month options with short name and default locale", () => {

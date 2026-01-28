@@ -42,7 +42,12 @@ export default class YearDropdown extends Component<
     const options: React.ReactElement[] = [];
     for (let i = minYear; i <= maxYear; i++) {
       options.push(
-        <option key={i} value={i}>
+        <option
+          key={i}
+          value={i}
+          aria-label={`Select Year ${i}`}
+          aria-selected={i === this.props.year ? "true" : "false"}
+        >
           {i}
         </option>,
       );
@@ -59,6 +64,7 @@ export default class YearDropdown extends Component<
       value={this.props.year}
       className="react-datepicker__year-select"
       onChange={this.onSelectChange}
+      aria-label="Select Year"
     >
       {this.renderSelectOptions()}
     </select>
@@ -71,8 +77,14 @@ export default class YearDropdown extends Component<
       style={{ visibility: visible ? "visible" : "hidden" }}
       className="react-datepicker__year-read-view"
       onClick={this.toggleDropdown}
+      aria-label="Select Year"
+      aria-expanded={this.state.dropdownVisible}
+      aria-haspopup="listbox"
     >
-      <span className="react-datepicker__year-read-view--down-arrow" />
+      <span
+        className="react-datepicker__year-read-view--down-arrow"
+        aria-hidden="true"
+      />
       <span className="react-datepicker__year-read-view--selected-year">
         {this.props.year}
       </span>
